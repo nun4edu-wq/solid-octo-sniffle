@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>حاسبة تقييم الأداء الوظيفي</title>
+    <style>
+        :root {
+            --primary-purple: #38003c;
+            --accent-cyan: #00bcd4;
+            --bg-main: #f4f6f9;
+            --text-dark: #111;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            margin: 0; padding: 10px;
+            display: flex; justify-content: center; align-items: flex-start; min-height: 100vh;
+        }
+        .calculator-container {
+            background: white; padding: 15px; border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08); width: 100%; max-width: 800px;
+        }
+        .header-logos {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;
+        }
+        .header-logos img {
+            max-height: 50px; object-fit: contain; width: auto; max-width: 35%;
+        }
+        .header-title {
+            text-align: center; flex-grow: 1; margin: 0 10px;
+        }
+        h2 { color: var(--primary-purple); margin: 0 0 4px 0; font-size: 16px; }
+        .subtitle { font-size: 11px; color: #666; font-weight: 600; margin: 0; }
+
+        .selector-box {
+            margin-bottom: 15px; background: #f3e5f5; padding: 10px; border-radius: 6px;
+            border: 1px solid var(--primary-purple); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+        }
+        .selector-box label { font-weight: bold; color: var(--primary-purple); font-size: 12px; }
+        .selector-box select { padding: 6px 10px; font-size: 12px; border-radius: 4px; border: 1px solid var(--primary-purple); font-weight: bold; color: var(--primary-purple); width: 60%; outline: none; background: #fff; }
+        
+        .table-responsive { width: 100%; overflow-x: auto; margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; border: 1px solid var(--primary-purple); min-width: 480px; }
+        th, td { border: 1px solid var(--primary-purple); padding: 6px; text-align: center; font-size: 11px; }
+        th { background: var(--primary-purple); color: white; }
+        td.text-right { text-align: right; }
+        
+        .table-footer-row {
+            background-color: #f3e5f5;
+            font-weight: bold;
+            color: var(--primary-purple);
+        }
+        
+        .percentage-box {
+            background-color: #e8f5e9;
+            border: 1px solid #2e7d32;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: bold;
+            color: #1b5e20;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+        
+        input.score-input {
+            width: 55px; padding: 3px; text-align: center; border: 1px solid #ccc;
+            border-radius: 4px; background: #fff; font-weight: bold; font-size: 12px; direction: ltr;
+        }
+        input.score-input:focus { border-color: var(--accent-cyan); outline: none; background: #e0f7fa; }
+
+        @media (max-width: 480px) {
+            body { padding: 5px; }
+            .calculator-container { padding: 10px; }
+            h2 { font-size: 14px; }
+            .subtitle { font-size: 10px; }
+            .header-logos img { max-height: 35px; }
+            .selector-box { flex-direction: column; align-items: stretch; }
+            .selector-box select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator-container">
+    <div class="header-logos">
+        <img src="https://i.postimg.cc/Df91cPk8/waslna-png.png" alt="شعار اليمين">
+        <div class="header-title">
+            <h2>حاسبة تقييم الأداء الوظيفي</h2>
+            <p class="subtitle">برمجة الشؤون التعليمية بمدارس الشارقة الأهلية</p>
+        </div>
+        <img src="https://i.postimg.cc/Kvc3fqq0/wslna.png" alt="شعار اليسار">
+    </div>
+    
+    <div class="selector-box">
+        <label for="formTypeSelect">اختر نوع الاستمارة:</label>
+        <select id="formTypeSelect" onchange="loadFormTemplate()">
+            <!-- تُعبأ ديناميكياً -->
+        </select>
+    </div>
+
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 5%;">م</th>
+                    <th style="width: 51%;">عناصر التقييم</th>
+                    <th style="width: 15%;">الوزن النسبي</th>
+                    <th style="width: 15%;">الدرجة الكلية</th>
+                    <th style="width: 14%;">الدرجة المكتسبة</th>
+                </tr>
+            </thead>
+            <tbody id="formTableBody">
+                <!-- صفوف البنود -->
+            </tbody>
+            <tfoot>
+                <tr class="table-footer-row">
+                    <td colspan="2" style="text-align: center; font-weight: bold;">المجموع الكلي</td>
+                    <td id="totalWeightDisplay">100%</td>
+                    <td id="maxScoreDisplay">0</td>
+                    <td id="totalScoreDisplay">0</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="percentage-box">
+        التقدير العام للأداء = <span id="finalPercentageDisplay" style="font-size: 15px;">0%</span>
+    </div>
+</div>
+
+<script>
+    const formTemplates = {
+        teacher: {
+            title: "استمارة تقييم أداء المعلم",
+            items: [
+                {name: "أداء الواجبات الوظيفية", weight: 10},
+                {name: "التفاعل مع المجتمع المهني", weight: 10},
+                {name: "التفاعل مع أولياء الأمور", weight: 10},
+                {name: "التنويع في استراتيجيات التدريس", weight: 10},
+                {name: "تحسين نتائج المتعلمين", weight: 10},
+                {name: "إعداد وتنفيذ خطة التعلم", weight: 10},
+                {name: "توظيف تقنيات ووسائل التعلم المناسبة", weight: 10},
+                {name: "تهيئة بيئة تعليمية", weight: 5},
+                {name: "الإدارة الصفية", weight: 5},
+                {name: "تحليل نتائج المتعلمين وتشخيص مستوياتهم", weight: 10},
+                {name: "تنويع أساليب التقويم", weight: 10}
+            ]
+        },
+        activity: {
+            title: "استمارة تقييم أداء رائد النشاط",
+            items: [
+                {name: "أداء الواجبات الوظيفية", weight: 10},
+                {name: "التفاعل مع المجتمع المهني", weight: 10},
+                {name: "التفاعل مع أولياء الأمور", weight: 10},
+                {name: "التنويع في إستراتيجيات التدريس", weight: 5},
+                {name: "تحسين نتائج المتعلمين", weight: 5},
+                {name: "إعداد وتنفيذ خطة التعلم", weight: 5},
+                {name: "توظيف تقنيات ووسائل التعلم المناسبة", weight: 5},
+                {name: "تهيئة بيئة تعليمية", weight: 5},
+                {name: "الإدارة الصفية", weight: 5},
+                {name: "تحليل نتائج المتعلمين وتشخيص مستوياتهم", weight: 5},
+                {name: "تنوع أساليب التقويم", weight: 5},
+                {name: "إعداد خطة مزمنة ومعتمدة لبرامج وفعاليات النشاط الطلابي", weight: 10},
+                {name: "تهيئة البيئة المدرسية للبرامج والأنشطة الطلابية", weight: 5},
+                {name: "يدعم المتعلمين وفق احتياجاتهم وميولهم للأنشطة", weight: 5},
+                {name: "يحفز المتعلمين على المشاركة في الأنشطة المدرسية", weight: 10}
+            ]
+        },
+        health: {
+            title: "استمارة تقييم أداء الموجه الصحي",
+            items: [
+                {name: "أداء الواجبات الوظيفية", weight: 10},
+                {name: "التفاعل مع المجتمع المهني", weight: 10},
+                {name: "التفاعل مع أولياء الأمور", weight: 10},
+                {name: "التنويع في إستراتيجيات التدريس", weight: 5},
+                {name: "تحسين نتائج المتعلمين", weight: 5},
+                {name: "إعداد وتنفيذ خطة التعلم", weight: 5},
+                {name: "توظيف تقنيات ووسائل التعلم المناسبة", weight: 5},
+                {name: "تهيئة بيئة تعليمية", weight: 5},
+                {name: "الإدارة الصفية", weight: 5},
+                {name: "تحليل نتائج المتعلمين وتشخيص مستوياتهم", weight: 5},
+                {name: "تنوع أساليب التقويم", weight: 5},
+                {name: "تنفيذ الخطة المشتركة للبرامج الصحية المدرسية", weight: 15},
+                {name: "حصر الحالات الصحية للمتعلمين", weight: 5},
+                {name: "تهيئة البيئة الصحية المدرسية", weight: 10}
+            ]
+        },
+        kg: {
+            title: "استمارة تقييم أداء معلمة رياض الأطفال",
+            items: [
+                {name: "أداء الواجبات الوظيفية", weight: 10},
+                {name: "التفاعل مع المجتمع المهني", weight: 5},
+                {name: "التفاعل مع أولياء الأمور", weight: 5},
+                {name: "التنويع في إستراتيجيات التدريس", weight: 5},
+                {name: "تحسين نتائج المتعلمين", weight: 5},
+                {name: "إعداد خطة شاملة وتفصيلية للأنشطة", weight: 5},
+                {name: "تصميم خبرات تعلم مرنة ومبتكرة", weight: 5},
+                {name: "توظيف تقنيات ووسائل التعلم المناسبة", weight: 5},
+                {name: "التمكن من المادة العلمية", weight: 5},
+                {name: "استخدام إستراتيجيات تدريس فاعلة ومتنوعة", weight: 5},
+                {name: "إشراك الأسرة في خطط النمو والتعلم", weight: 5},
+                {name: "تهيئ بيئة تعلمية آمنة ومعززة للتطور النمائي والتعلم", weight: 5},
+                {name: "توفير فرص متنوعة لدعم التفاعلات في بيئة التعلم", weight: 5},
+                {name: "تقوم تعلم المتعلمين وتتابع تقدمهم بانتظام", weight: 5},
+                {name: "تستثمر نتائج التقويم في تعزيز النمو والتعلم", weight: 5},
+                {name: "تشرك الأسرة في نتائج التقويم", weight: 5},
+                {name: "تدعم تحقيق مستويات الأداء المستهدفة لكل متعلم", weight: 5},
+                {name: "تدعم مهارات المستقبل لدى المتعلمين", weight: 5},
+                {name: "تدعم اكتساب المتعلمين القيم والمبادئ والاتجاهات", weight: 5}
+            ]
+        },
+        lab: {
+            title: "استمارة تقييم أداء محضر المختبر",
+            items: [
+                {name: "أداء الواجبات الوظيفية", weight: 10},
+                {name: "التفاعل مع المجتمع المهني", weight: 10},
+                {name: "التفاعل مع أولياء الأمور", weight: 10},
+                {name: "التنويع في إستراتيجيات التدريس", weight: 10},
+                {name: "تحسين نتائج المتعلمين", weight: 10},
+                {name: "يُعد خطة يومية لأنشطة المختبر", weight: 5},
+                {name: "المعرفة بالأسس والمفاهيم الفنية", weight: 5},
+                {name: "يوفر المستلزمات اللازمة لأداء التجارب العلمية", weight: 5},
+                {name: "يلتزم بسياسات وإجراءات السلامة المهنية", weight: 5},
+                {name: "يُحضر ويُجهز المختبر", weight: 5},
+                {name: "تهيئة وتسليم الأجهزة المطلوبة للمعلمين وتخزينها بطريقة سليمة", weight: 5},
+                {name: "يُعد تقرير أنشطة ومهام المختبر الأسبوعية", weight: 10},
+                {name: "يعد تقارير دورية عن حالة الأجهزة والمعدات", weight: 10}
+            ]
+        },
+        counselor: {
+            title: "استمارة تقييم أداء الموجه الطلابي",
+            items: [
+                {name: "أداء الواجبات الوظيفية", weight: 20},
+                {name: "التفاعل مع المجتمع المهني", weight: 5},
+                {name: "التفاعل مع أولياء الأمور", weight: 5},
+                {name: "يُقدم التدخلات المناسبة لتعزيز الانضباط", weight: 5},
+                {name: "تقديم برامج تربوية لتعزيز دافعية الطلبة للتعلم", weight: 5},
+                {name: "إعداد خطة لبرامج التوجيه الطلابي", weight: 10},
+                {name: "يُصنف الحالات ويُقدم برامج الدعم المناسبة", weight: 10},
+                {name: "يُعزز القيم والسلوكيات للمتعلمين", weight: 10},
+                {name: "يُقدم التدخلات النفسية والاجتماعية", weight: 10},
+                {name: "يُساعد المتعلمين على التخطيط المهني والتعليمي", weight: 5},
+                {name: "يُعزز التفوق الدراسي", weight: 5},
+                {name: "يقدم تدخلات تربوية للمتأخرين دراسياً والمعيدين", weight: 5},
+                {name: "توعية المتعلمين وأولياء أمورهم بقواعد السلوك والمواظبة", weight: 5}
+            ]
+        }
+    };
+
+    function initSelector() {
+        const select = document.getElementById('formTypeSelect');
+        select.innerHTML = '';
+        for (let key in formTemplates) {
+            let opt = document.createElement('option');
+            opt.value = key;
+            opt.textContent = formTemplates[key].title;
+            select.appendChild(opt);
+        }
+        loadFormTemplate();
+    }
+
+    function loadFormTemplate() {
+        const type = document.getElementById('formTypeSelect').value;
+        const template = formTemplates[type];
+        const tbody = document.getElementById('formTableBody');
+        tbody.innerHTML = '';
+
+        template.items.forEach((item, index) => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td class="text-right" style="font-weight: 600;">${item.name}</td>
+                <td>${item.weight}%</td>
+                <td>5</td>
+                <td><input type="number" step="any" min="0" max="5" value="5" class="score-input" data-weight="${item.weight}" 
+                    onfocus="handleFocus(this)" 
+                    onblur="handleBlur(this)" 
+                    oninput="calculateScores()"></td>
+            `;
+            tbody.appendChild(tr);
+        });
+        calculateScores();
+    }
+
+    let previousValue = "";
+
+    function handleFocus(input) {
+        previousValue = input.value;
+        input.value = "";
+    }
+
+    function handleBlur(input) {
+        if (input.value.trim() === "") {
+            input.value = previousValue !== "" ? previousValue : "5";
+            calculateScores();
+        }
+    }
+
+    function calculateScores() {
+        let totalAcquiredWeightedSum = 0; // مجموع الدرجات الموزونة المكتسبة (الجزء)
+        let totalMaxScore = 0;            // مجموع الدرجات الكلية (الكل)
+        const inputs = document.querySelectorAll('.score-input');
+
+        inputs.forEach(input => {
+            let val = parseFloat(input.value);
+            if (isNaN(val)) val = 0;
+            if (val > 5) { val = 5; input.value = 5; }
+            if (val < 0) { val = 0; input.value = 0; }
+
+            let weight = parseFloat(input.getAttribute('data-weight')) || 0;
+            
+            // حساب النسبة الموزونة لكل درجة مكتسبة (مثلاً: الدرجة / 5 * الوزن النسبي)
+            let acquiredWeightedScore = (val / 5) * weight;
+            totalAcquiredWeightedSum += acquiredWeightedScore;
+            
+            // مجموع الدرجات الكلية (عدد البنود * 5)
+            totalMaxScore += 5;
+        });
+
+        // تحويل مجموع الدرجات المكتسبة ليكون مقيساً نسبة إلى مجموع الدرجات الكلية
+        // (حيث أن كل بند درجته العظمى 5، والوزن يمثل حصته من الـ 55 الكلية)
+        let acquiredScoreScaled = (totalAcquiredWeightedSum / 100) * totalMaxScore;
+
+        let formattedAcquired = parseFloat(acquiredScoreScaled.toFixed(2));
+        let formattedMax = totalMaxScore;
+        
+        // حساب التقدير العام للأداء بناءً على المعادلة المطلوبة: (مجموع الدرجات الموزونة / مجموع الدرجة الكلية * 100)
+        let percentage = (totalAcquiredWeightedSum / totalMaxScore) * (totalMaxScore / 5); // يعود للنسبة المئوية الصحيحة 0-100%
+        // التحقق الدقيق: مجموع الدرجات الموزونة هو نفسه النسبة المئوية إذا كانت الدرجة الكلية للوزن 100%
+        let finalPercentage = parseFloat(totalAcquiredWeightedSum.toFixed(2));
+
+        document.getElementById('totalScoreDisplay').textContent = formattedAcquired;
+        document.getElementById('maxScoreDisplay').textContent = formattedMax;
+        document.getElementById('totalWeightDisplay').textContent = "100%";
+        document.getElementById('finalPercentageDisplay').textContent = finalPercentage + '%';
+    }
+
+    window.onload = function() {
+        initSelector();
+    };
+</script>
+
+</body>
+</html>
